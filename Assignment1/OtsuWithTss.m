@@ -25,7 +25,7 @@ for colorVal = 0 : 255
     
     if (mean1 ~= 0)
         for j = 1 : colorVal
-            tss1 = tss1 + (countOfPixels(j) - mean1);
+            tss1 = tss1 + countOfPixels(j)*(j - mean1)^2;
         end
     end
 
@@ -40,28 +40,29 @@ for colorVal = 0 : 255
 
     if (mean2 ~= 0)
         for j = colorVal + 1:255
-            tss2 = tss2 + (countOfPixels(j) - mean2);
+            tss2 = tss2 + countOfPixels(j)*(j - mean2)^2;
         end
     end
 
-    result(colorVal + 1) = tss1 + tss2;
+    result(colorVal+1) = tss1 + tss2;
 end
 
 % Finding Threshold by minimizing the sum of TSS
-thresh = find(result == min(result));
+thresh = find(result == min(result)) - 1;
 
 
 disp(thresh)
+disp(result(thresh))
 
 % Finding the region of interest
 valSum1 = sum(countOfPixels(1:thresh).*index(1:thresh));
 valSum2 = sum(countOfPixels(thresh+1:255).*index(thresh+1:255));
 
-% Displaying the Binary Mask
+%  Displaying the Binary Mask
 if (valSum1 > valSum2)
-    imshow(gray > thresh)
+     imshow(gray < thresh)
 else
-    imshow(gray < thresh)
+     imshow(gray > thresh)
 end
 
 % Left: Saving the Values in a CSV file
