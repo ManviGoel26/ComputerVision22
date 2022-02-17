@@ -4,8 +4,9 @@ close;
 
 % Making the features dataset using the image dataset.
 % Loading the images. Specify the variable values. 
-imagefiles_path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment2\inputs\dd\';
-numFeatures = 20;
+path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment2\';
+imagefiles_path = strcat(path, 'inputs\dd\');
+numFeatures = 50;
 
 imDir = dir([imagefiles_path '*.jpg']);
 noFiles = numel(imDir);
@@ -18,18 +19,19 @@ for im = 1 : noFiles
 
     corners = detectMinEigenFeatures(Img);
     cornerPix = uint16(corners.selectStrongest(numFeatures).Location);
-    ImP = padarray(Img, [1 1]);
+    ImP = padarray(Img, [2 2]);
     lbpF = [];
-
+    
     for pC = 1 : numFeatures
         center = cornerPix(pC, :);
         localBinaryPatternImage = zeros(3, 'uint8');
         
 
-        for row = center(2): center(2) + 2
-	        for col = center(1): center(1) + 2
+        for row = center(2) + 1: center(2) + 3
+	        for col = center(1) + 1: center(1) + 3
 		        centerPixel = ImP(row, col);
                 %disp(col);
+%                 disp(row)
 		        pixel7 = ImP(row-1, col-1) > centerPixel;
 		        pixel6 = ImP(row-1, col) > centerPixel;
 		        pixel5 = ImP(row-1, col+1) > centerPixel;
@@ -60,7 +62,7 @@ end
 
 
 % Extracting the features for the search Image
-I = imread("C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment2\inputs\" + ImName);
+I = imread(strcat(path, 'inputs\', ImName));
 I = rgb2gray(I);
 
 corners = detectMinEigenFeatures(I);
@@ -76,6 +78,7 @@ for pC = 1 : numFeatures
     for row = center(2) - 1: center(2) + 1
         for col = center(1) - 1: center(1) + 1
             centerPixel = ImP(row, col);
+            
 		    pixel7 = ImP(row-1, col-1) > centerPixel;
 		    pixel6 = ImP(row-1, col) > centerPixel;
 		    pixel5 = ImP(row-1, col+1) > centerPixel;
@@ -107,9 +110,9 @@ idIms = knnsearch(X, newF, "K", k);
 disp(idIms);
 for n = 1:k
     I = imread(strcat(imagefiles_path, imDir(idIms(n)).name));
+    imwrite(I, strcat(path, "Outputs\2019472_Q4\Im", int2str(n), ".jpg"));
     imshow(I);
     pause(2);
-
 
 end
 
