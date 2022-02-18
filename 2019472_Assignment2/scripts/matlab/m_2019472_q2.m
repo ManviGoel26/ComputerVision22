@@ -1,6 +1,15 @@
 function[] = m_2019472_q2(k)
 close;
 
+
+% Making the features dataset using the image dataset.
+% Loading the images. Specify the variable values. 
+path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment2\';
+imagefiles_path = strcat(path, 'inputs\dd\');
+sizes = [16 4 1];
+
+% Custom LBPF Function implementation. Returns feature vector of length
+% (binSize * CellSize)
 function feature = extractCustomLBPFeatures(Im, binSize, CellSize)
     [nRow, nCol] = size(Im);
     I2 = padarray(Im, [2 2]);
@@ -82,6 +91,7 @@ function feature = extractCustomLBPFeatures(Im, binSize, CellSize)
     wholeBlockCols = nCol / CellSize(2);
     blockVectorC = [CellSize(2)* ones(1, wholeBlockCols)];
 
+%     Divide the image into multiple patches
     ca = mat2cell(localBinaryPatternImage, blockVectorR, blockVectorC);
     numPlotsR = size(ca, 1);
     numPlotsC = size(ca, 2);
@@ -92,12 +102,6 @@ function feature = extractCustomLBPFeatures(Im, binSize, CellSize)
     end
 end
 
-
-% Making the features dataset using the image dataset.
-% Loading the images. Specify the variable values. 
-path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment2\';
-imagefiles_path = strcat(path, 'inputs\dd\');
-sizes = [16 4 1];
 
 imDir = dir([imagefiles_path '*.jpg']);
 noFiles = numel(imDir);
@@ -117,12 +121,15 @@ for im = 1 : noFiles
        lbpFeature = cat(1, lbpFeature, feature);
     end
 
+%     Make the dataset
    X(im, :) = lbpFeature';
 end
 
+% Fuzzy C Means Clustering
 [~, u] = fcm(X, k);
 maxU = max(u);
 
+% Making the subfolders and thresholding for the fcm
 for i = 1:k
     indexes = find(u(i, :) == maxU);
     lenI = size(indexes);
