@@ -117,8 +117,7 @@ for im = 1 : noFiles
     for s = 1 : len(2)
         numPatches = sizes(s);
         feature = extractCustomLBPFeatures(I, 10, [256/numPatches^0.5 256/numPatches^0.5]);
-%         feature = extractLBPFeatures(I, 'Upright', false, 'CellSize', [256/numPatches^0.5 256/numPatches^0.5]);
-       lbpFeature = cat(1, lbpFeature, feature);
+        lbpFeature = cat(1, lbpFeature, feature);
     end
 
 %     Make the dataset

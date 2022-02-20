@@ -5,9 +5,10 @@ close;
 % Making the features dataset using the image dataset.
 % Loading the images. Specify the variable values. 
 path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment2\';
-imagefiles_path = strcat(path, 'inputs\Q1_DL\');
+imagefiles_path = strcat(path, ['inputs\Q1_Non' ...
+    'DL\']);
 
-imDir = dir([imagefiles_path '*.png']);
+imDir = dir([imagefiles_path '*.jpg']);
 noFiles = numel(imDir);
 
 
