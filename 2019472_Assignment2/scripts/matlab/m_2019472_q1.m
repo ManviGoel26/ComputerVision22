@@ -59,13 +59,24 @@ for im = 1 : noFiles
     Ls = 0;
     
     for i = 1:1001
-        Ls = Ls + 0.01*min(fgD(i), bgD(i));
+        Ls = Ls + 0.001*min(fgD(i), bgD(i));
     end
     
-    m1 = 1/(1+log10(1+Ls));
+    m1 = 1/(1+1001*log10(1+Ls));
     disp(m1);
 
 % Second Quality Measure
+    CC = bwconncomp(fg);
+    OS = CC.NumObjects;
+    numPixels = cellfun(@numel,CC.PixelIdxList);
+    sumCC = 0;
+
+    for j = 1:OS
+        sumCC = sumCC + numPixels(j);
+    end
+    CPrimeS = max(numPixels)/sumCC;
+    m2 = CPrimeS + (1-CPrimeS)/(OS);
+    disp(m2);
 
 
     
