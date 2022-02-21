@@ -12,64 +12,50 @@ imDirDL = dir([imagefiles_pathDL '*.png']);
 imDirNDL = dir([imagefiles_pathNDL '*.jpg']);
 noFiles = numel(imDirDL);
 
-function [m1, fg] = sepMeasure(sm)
-    thresh = graythresh(sm)*255;
-    mask1 = sm>thresh;
-    mask2 = sm<thresh;
-    pc1 = sum(mask1);
-    pc2 = sum(mask2);
-
-    if (pc1 > pc2)
-        
-        fg = sm;
-        fg(~mask1) = 0;
-        bg = sm;
-        bg(~mask2) = 0;
-    else
-        fg = sm;
-        fg(~mask2) = 0;
-        bg = sm;
-        bg(~mask1) = 0;
-    end
+function [m1, mask1] = sepMeasure(sm)
+    sm = double(sm)/255;
+    mask1 = imbinarize(double(sm), graythresh(sm));
     
-    fg = double(fg)/255;
-    bg = double(bg)/255;
-    meanFG = mean2(fg);
-    stdFG = std2(fg);
-    meanBG = mean2(bg);
-    stdBG = std2(bg);
+    fg = sm(mask1);
+    bg = sm(~mask1);
     
-    disp("The means")
-    disp(meanFG);
-    disp(meanBG);    
-    disp done
-    x = [0:0.001:1];
-    fgD = normpdf(x, meanFG, stdFG);
-    bgD = normpdf(x, meanBG, stdBG);
-    zPrimeP = (meanBG*(stdFG^2) - meanFG*(stdBG^2))/(stdFG^2-stdBG^2) + ((stdFG*stdBG)/(stdFG^2 - stdBG^2))*((meanFG^2 - meanBG^2)^2 - 2*(stdFG^2 - stdBG^2)*(log(stdBG)-log(stdFG)))^0.5;
-    zPrimeN = (meanBG*(stdFG^2) - meanFG*(stdBG^2))/(stdFG^2-stdBG^2) - ((stdFG*stdBG)/(stdFG^2 - stdBG^2))*((meanFG^2 - meanBG^2)^2 - 2*(stdFG^2 - stdBG^2)*(log(stdBG)-log(stdFG)))^0.5;
-    array = [0 1];
-    if (zPrimeN > 0)
-        array(3) = zPrimeN;
-    end
-    if (zPrimeP > 0)
-        array(4) = zPrimeP;
+    if isempty(fg)
+        fg = 0;
     end
 
-    arraySort = sort(array);
-    Ls = 0;
-    
-    for i = 1:1001
-        Ls = Ls + 0.001*min(fgD(i), bgD(i));
+    if isempty(bg)
+        bg = 0;
     end
-    disp(Ls)
-    m1 = 1/(1+log10(1+1000*Ls));
+    
+    
+    meanFG = sum(fg(:))/(sum(mask1(:)) + eps);
+    meanBG = sum(bg(:))/(sum(~mask1(:)) + eps);
+    stdFG = sqrt(var(fg(:))) + eps;
+    stdBG = sqrt(var(bg(:))) + eps;
+    
+    x = linspace(0, 1, 256);
+    dists = [exp(-0.5*((x-meanFG)/stdFG).^2)/(stdFG*sqrt(2*pi));exp(-0.5*((x-meanBG)/stdBG).^2)/(stdBG*sqrt(2*pi))];
+   
+    a = 1/stdBG^2-1/stdFG^2;
+    b = -2*(meanBG/stdBG^2-meanFG/stdFG^2);
+    c = meanBG^2/stdBG^2-meanFG^2/stdFG^2+2*(log(stdBG+eps)-log(stdFG+eps));
+
+    rt = roots([a b c]);
+    rt = rt(rt >= 0);
+    rtx = rt(rt <= 1);
+    rtx = rtx(1);
+    fg1 = dists(1,:);
+    fg2 = dists(2,:);
+    m1 = 1/(1+log10(1+sum(fg1(x<rtx))+sum(fg2(x>=rtx))));
+
 end
 
-function m2 = conMeasure(fg)
-    CC = bwconncomp(fg);
+function m2 = conMeasure(mask)
+    maskD = double(mask);
+    CC = bwconncomp(maskD);
     OS = CC.NumObjects;
     numPixels = cellfun(@numel,CC.PixelIdxList);
+
     sumCC = 0;
 
     for j = 1:OS
@@ -79,35 +65,42 @@ function m2 = conMeasure(fg)
     m2 = CPrimeS + (1-CPrimeS)/(OS);
 end
 
+fid = fopen(strcat(path, 'Outputs\2019472_Q1.csv'), 'w' );
+
 for im = 1 : noFiles
-    disp(imDirNDL(im).name);
+    
+    s = size(imDirNDL(im).name);
+    newStr = extractBetween(imDirNDL(im).name, 9, s(2)-4);
+    newStr = newStr{1};
+    
+    disp(strcat("Image: ", newStr));
+
     smNDL = imread(strcat(imagefiles_pathNDL, imDirNDL(im).name));
     smDL = imread(strcat(imagefiles_pathDL, imDirDL(im).name));
 
+
     % First quality measure
-    [m1DL, fgDL] = sepMeasure(smDL);
-    [m1NDL, fgNDL] = sepMeasure(smNDL);
+    [m1DL, maskDL] = sepMeasure(smDL);
+    [m1NDL, maskNDL] = sepMeasure(smNDL);
     
     disp("The separation measures for the DL based and Non DL based saliency maps")
     disp(m1DL);
     disp(m1NDL);
 
     % Second Quality Measure
-    m2DL = conMeasure(fgDL);
-    m2NDL = conMeasure(fgNDL);
+    m2DL = conMeasure(maskDL);
+    m2NDL = conMeasure(maskNDL);
     
     
     disp("The concentration measures for the DL based and Non DL based saliency maps")
     disp(m2DL);
     disp(m2NDL);
 
-
-    outputs(im, :) = [m1DL m1NDL m2DL m2NDL];
-    writematrix(outputs, strcat(path, 'Outputs\2019472_Q1.csv')); 
+    outputs = [m1DL m1NDL m2DL m2NDL];
+    fprintf(fid, '%s, %f, %f, %f, %f\n', newStr, outputs(1), outputs(2), outputs(3), outputs(4));
 end
 
-
-
+fclose(fid);
 end
 
 
