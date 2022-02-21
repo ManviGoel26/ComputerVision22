@@ -5,17 +5,14 @@ close;
 % Making the features dataset using the image dataset.
 % Loading the images. Specify the variable values. 
 path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment2\';
-imagefiles_path = strcat(path, 'inputs\Q1_DL\');
+imagefiles_pathDL = strcat(path, 'inputs\Q1_DL\');
+imagefiles_pathNDL = strcat(path, 'inputs\Q1_NonDL\');
 
-imDir = dir([imagefiles_path '*.png']);
-noFiles = numel(imDir);
+imDirDL = dir([imagefiles_pathDL '*.png']);
+imDirNDL = dir([imagefiles_pathNDL '*.jpg']);
+noFiles = numel(imDirDL);
 
-
-for im = 1 : noFiles
-    disp(imDir(im).name);
-    sm = imread(strcat(imagefiles_path, imDir(im).name));
-
-%     First quality measure
+function [m1, fg] = sepMeasure(sm)
     thresh = graythresh(sm)*255;
     mask1 = sm>thresh;
     mask2 = sm<thresh;
@@ -42,6 +39,10 @@ for im = 1 : noFiles
     meanBG = mean2(bg);
     stdBG = std2(bg);
     
+    disp("The means")
+    disp(meanFG);
+    disp(meanBG);    
+    disp done
     x = [0:0.001:1];
     fgD = normpdf(x, meanFG, stdFG);
     bgD = normpdf(x, meanBG, stdBG);
@@ -61,11 +62,11 @@ for im = 1 : noFiles
     for i = 1:1001
         Ls = Ls + 0.001*min(fgD(i), bgD(i));
     end
-    
-    m1 = 1/(1+1001*log10(1+Ls));
-    disp(m1);
+    disp(Ls)
+    m1 = 1/(1+log10(1+1000*Ls));
+end
 
-% Second Quality Measure
+function m2 = conMeasure(fg)
     CC = bwconncomp(fg);
     OS = CC.NumObjects;
     numPixels = cellfun(@numel,CC.PixelIdxList);
@@ -76,10 +77,33 @@ for im = 1 : noFiles
     end
     CPrimeS = max(numPixels)/sumCC;
     m2 = CPrimeS + (1-CPrimeS)/(OS);
-    disp(m2);
+end
 
+for im = 1 : noFiles
+    disp(imDirNDL(im).name);
+    smNDL = imread(strcat(imagefiles_pathNDL, imDirNDL(im).name));
+    smDL = imread(strcat(imagefiles_pathDL, imDirDL(im).name));
 
+    % First quality measure
+    [m1DL, fgDL] = sepMeasure(smDL);
+    [m1NDL, fgNDL] = sepMeasure(smNDL);
     
+    disp("The separation measures for the DL based and Non DL based saliency maps")
+    disp(m1DL);
+    disp(m1NDL);
+
+    % Second Quality Measure
+    m2DL = conMeasure(fgDL);
+    m2NDL = conMeasure(fgNDL);
+    
+    
+    disp("The concentration measures for the DL based and Non DL based saliency maps")
+    disp(m2DL);
+    disp(m2NDL);
+
+
+    outputs(im, :) = [m1DL m1NDL m2DL m2NDL];
+    writematrix(outputs, strcat(path, 'Outputs\2019472_Q1.csv')); 
 end
 
 
