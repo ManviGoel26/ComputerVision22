@@ -5,7 +5,7 @@ close all
 path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\ComputerVision22\2019472_Assignment3\';
 
 % The number of superpixels
-numPixels = [10, 20, 50, 100, 200, 500, 1000, 1500, 2000];
+numPixels = [10, 20, 50, 100, 200, 500, 1000, 1500, 2000, 10000];
 
 Image = imread(strcat(path, 'inputs\', imName));
 fid = fopen(strcat(path, 'Outputs\2019472_Q1.csv'), 'w' );

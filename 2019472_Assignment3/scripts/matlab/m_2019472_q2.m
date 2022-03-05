@@ -30,5 +30,13 @@ for i = 1:size(epsilons, 2)
     end
 end
 
+% KNN search for estimating the value of epsilon.
+% for i = 1:size(minNumbers, 2)
+%     [~, distance] = knnsearch(featureImage, [featureImage], 'K', minNumbers(i));
+%     sortD = sort(distance);
+%     plot(sortD);
+%     pause(10)
+% end
+
 
 end
