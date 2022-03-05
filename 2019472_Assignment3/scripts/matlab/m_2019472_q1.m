@@ -14,7 +14,7 @@ fid = fopen(strcat(path, 'Outputs\2019472_Q1.csv'), 'w' );
 for numSuperpix = 1:size(numPixels, 2)
     numSuperpixels = numPixels(numSuperpix);
     % Calculate the superpixels
-    [L, numLabels] = superpixels(Image, numSuperpixels);
+    [L, numLabels] = superpixels(Image, numSuperpixels, 'Compactness', 13);
     ids = label2idx(L);
     
     % Initialize matrices for storing datas
@@ -76,8 +76,8 @@ fclose(fid);
 
 
 function [m1, mask1] = sepMeasure(sm)
-    sm = double(sm)/255;
-    mask1 = imbinarize(double(sm), graythresh(sm));
+%     sm = double(sm)/255;
+    mask1 = imbinarize(sm, graythresh(sm));
     
     fg = sm(mask1);
     bg = sm(~mask1);
@@ -96,7 +96,7 @@ function [m1, mask1] = sepMeasure(sm)
     stdFG = sqrt(var(fg(:))) + eps;
     stdBG = sqrt(var(bg(:))) + eps;
     
-    x = linspace(0, 1, 256);
+    x = linspace(0, 1, 1000);
     dists = [exp(-0.5*((x-meanFG)/stdFG).^2)/(stdFG*sqrt(2*pi));exp(-0.5*((x-meanBG)/stdBG).^2)/(stdBG*sqrt(2*pi))];
    
     a = 1/stdBG^2-1/stdFG^2;
@@ -109,7 +109,7 @@ function [m1, mask1] = sepMeasure(sm)
     rtx = rtx(1);
     fg1 = dists(1,:);
     fg2 = dists(2,:);
-    m1 = 1/(1+log10(1+sum(fg1(x<rtx))+sum(fg2(x>=rtx))));
+    m1 = 1/(1+1000*log10(1+sum(fg1(x<rtx))+sum(fg2(x>=rtx))));
 
 end
 
