@@ -5,27 +5,30 @@ path = 'C:\Users\hp\Desktop\Manvi\Semesters\6th_WinterSemester\ComputerVision\Co
 
 Image = imread(strcat(path, 'inputs\', imName));
 Image = rgb2gray(Image);
-nLoop = 7e7;
+nLoop = 100;
 
-function pointsSift = funcSift(Image, nLoop) 
-    for i = 1:nLoop
-        pointsSift = @() detectSIFTFeatures(Image);
-    end
+disp('Time taken to calculate SIFT features') 
+tic 
+for i = 1:nLoop
+        pointsSift = detectSIFTFeatures(Image);
 end
+toc
+
+disp(" ")
+disp('Time taken to calculate SURF features')
+tic 
+ for i = 1:nLoop
+        pointsSurf = detectSURFFeatures(Image);
+ end
+toc
+
+figure, imshow(Image);
+hold on;
+plot(pointsSift.selectStrongest(10))
 
 
-function pointsSurf = funcSurf(Image, nLoop) 
-    for i = 1:nLoop
-        pointsSurf = @() detectSURFFeatures(Image);
-    end
-end
+figure, imshow(Image);
+hold on;
+plot(pointsSurf.selectStrongest(10))
 
-f1 = @() funcSift(Image, nLoop);
-f2 = @() funcSurf(Image, nLoop);
-t = timeit(f1, 1)
-t = timeit(f2, 1)
-
-% imshow(Image);
-% hold on;
-% plot(points.selectStrongest(10))
 end
