@@ -25,6 +25,7 @@ Assignments for the course Computer Vision (CSE344) IIIT Delhi Winter 22
 
 ## Details
 Course Assignments for Computer Vision (CSE344) 
+
 Instructor : Dr. Koteswar Rao Jerripothula
 
 Skills Used : Computer Vision, Algebra, Clustering, ML for Images
